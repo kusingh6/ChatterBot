@@ -343,10 +343,10 @@ class SQLStorageAdapter(StorageAdapter):
             Statement
         ).filter(
             Statement.conversations.any(id=conversation_id)
-        ).order_by(Statement.id).limit(2).first()
+        ).order_by(Statement.id)
 
-        if statement_query:
-            statement = statement_query.get_statement()
+        if statement_query.count() >= 2:
+            statement = statement_query[-2].get_statement()
 
         session.close()
 

@@ -158,7 +158,7 @@ class DjangoStorageAdapter(StorageAdapter):
         response = Response.objects.filter(
             conversations__id=conversation_id
         ).order_by(
-            'created_at'
+            '-created_at'
         ).first()
 
         if not response:

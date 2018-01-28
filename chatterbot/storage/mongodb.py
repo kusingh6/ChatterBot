@@ -291,7 +291,7 @@ class MongoDatabaseAdapter(StorageAdapter):
             'conversations.id': conversation_id
         }).sort('conversations.created_at', DESCENDING))
 
-        if not statements:
+        if not statements or not len(statements) > 2:
             return None
 
         return self.mongo_to_object(statements[-2])
