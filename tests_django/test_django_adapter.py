@@ -1,7 +1,14 @@
 from django.test import TestCase
 from chatterbot.storage import DjangoStorageAdapter
-from chatterbot.ext.django_chatterbot.models import Statement as StatementModel
-from chatterbot.ext.django_chatterbot.models import Response as ResponseModel
+from chatterbot.ext.django_chatterbot.factories import (
+    ConversationFactory,
+    StatementFactory,
+    ResponseFactory,
+)
+from chatterbot.ext.django_chatterbot.models import (
+    Statement as StatementModel,
+    Response as ResponseModel
+)
 
 
 class DjangoAdapterTestCase(TestCase):
@@ -20,6 +27,65 @@ class DjangoAdapterTestCase(TestCase):
 
 
 class DjangoStorageAdapterTestCase(DjangoAdapterTestCase):
+
+    def test_get_latest_response_from_invalid_conversation_id(self):
+        response = self.adapter.get_latest_response(0)
+
+        self.assertIsNone(response)
+
+    def test_get_latest_response_from_zero_responses(self):
+        conversation = ConversationFactory()
+        response = self.adapter.get_latest_response(conversation.id)
+
+        self.assertIsNone(response)
+
+    def test_get_latest_response_from_one_responses(self):
+        conversation = ConversationFactory()
+        response_1 = ResponseFactory(
+            statement=StatementFactory(text='A'),
+            response=StatementFactory(text='B')
+        )
+
+        conversation.responses.add(response_1)
+        response = self.adapter.get_latest_response(conversation.id)
+
+        self.assertEqual(response_1.response, response)
+
+    def test_get_latest_response_from_two_responses(self):
+        conversation = ConversationFactory()
+        response_1 = ResponseFactory(
+            statement=StatementFactory(text='A'),
+            response=StatementFactory(text='B')
+        )
+        response_2 = ResponseFactory(
+            statement=StatementFactory(text='C'),
+            response=StatementFactory(text='D')
+        )
+
+        conversation.responses.add(response_1, response_2)
+        response = self.adapter.get_latest_response(conversation.id)
+
+        self.assertEqual(response_2.response, response)
+
+    def test_get_latest_response_from_three_responses(self):
+        conversation = ConversationFactory()
+        response_1 = ResponseFactory(
+            statement=StatementFactory(text='A'),
+            response=StatementFactory(text='B')
+        )
+        response_2 = ResponseFactory(
+            statement=StatementFactory(text='C'),
+            response=StatementFactory(text='D')
+        )
+        response_3 = ResponseFactory(
+            statement=StatementFactory(text='E'),
+            response=StatementFactory(text='F')
+        )
+
+        conversation.responses.add(response_1, response_2, response_3)
+        response = self.adapter.get_latest_response(conversation.id)
+
+        self.assertEqual(response_3.response, response)
 
     def test_count_returns_zero(self):
         """
