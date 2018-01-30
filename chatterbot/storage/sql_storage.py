@@ -344,11 +344,11 @@ class SQLStorageAdapter(StorageAdapter):
         ).order_by(Statement.id)
 
         if statement_query.count() >= 2:
-            statement = statement_query[-1].get_statement()
+            statement = statement_query[-2].get_statement()
 
         # Handle the case of the first statement in the list
-        if statement_query.count() == 1:
-            statement = statement_query[-1].get_statement()
+        elif statement_query.count() == 1:
+            statement = statement_query[0].get_statement()
 
         session.close()
 
