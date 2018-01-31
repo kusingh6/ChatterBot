@@ -11,10 +11,15 @@ class Trainer(object):
     """
 
     def __init__(self, storage, **kwargs):
-        self.chatbot = kwargs.get('chatbot')
         self.storage = storage
+
+        self.chatbot = kwargs.get('chatbot')
+
         self.logger = logging.getLogger(__name__)
+
         self.show_training_progress = kwargs.get('show_training_progress', True)
+
+        self.training_conversation_id = self.storage.create_conversation()
 
     def get_preprocessed_statement(self, input_statement):
         """
@@ -113,9 +118,13 @@ class ListTrainer(Trainer):
                 statement.add_response(
                     Response(previous_statement_text)
                 )
+                self.storage.add_to_conversation(
+                    self.training_conversation_id,
+                    statement,
+                    Statement(text=previous_statement_text)
+                )
 
             previous_statement_text = statement.text
-            self.storage.update(statement)
 
 
 class ChatterBotCorpusTrainer(Trainer):
@@ -163,9 +172,15 @@ class ChatterBotCorpusTrainer(Trainer):
                             statement.add_response(
                                 Response(previous_statement_text)
                             )
+                            self.storage.add_to_conversation(
+                                self.training_conversation_id,
+                                statement,
+                                Response(text=previous_statement_text)
+                            )
+                        else:
+                            self.storage.update(statement)
 
                         previous_statement_text = statement.text
-                        self.storage.update(statement)
 
 
 class TwitterTrainer(Trainer):
@@ -259,8 +274,19 @@ class TwitterTrainer(Trainer):
     def train(self):
         for _ in range(0, 10):
             statements = self.get_statements()
+            previous_statement_text = None
+
             for statement in statements:
-                self.storage.update(statement)
+                if previous_statement_text:
+                    self.storage.add_to_conversation(
+                        self.training_conversation_id,
+                        statement,
+                        Response(text=previous_statement_text)
+                    )
+                else:
+                    self.storage.update(statement)
+
+                previous_statement_text = statement.text
 
 
 class UbuntuCorpusTrainer(Trainer):
@@ -421,6 +447,12 @@ class UbuntuCorpusTrainer(Trainer):
                             statement.add_response(
                                 Response(previous_statement_text)
                             )
+                            self.storage.add_to_conversation(
+                                self.training_conversation_id,
+                                statement,
+                                Response(text=previous_statement_text)
+                            )
+                        else:
+                            self.storage.update(statement)
 
                         previous_statement_text = statement.text
-                        self.storage.update(statement)
