@@ -37,7 +37,7 @@ class MongoAdapterTestCase(TestCase):
 class MongoDatabaseAdapterTestCase(MongoAdapterTestCase):
 
     def test_get_latest_response_from_invalid_conversation_id(self):
-        response = self.adapter.get_latest_response(0)
+        response = self.adapter.get_latest_response('000000000000')
 
         self.assertIsNone(response)
 
